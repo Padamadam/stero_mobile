@@ -1,0 +1,12 @@
+<launch>
+
+  <include file="$(find stero_mobile_init)/launch/tiago_simple.launch"/>
+  
+  <node
+    pkg="stero_mobile_init"
+    type="move_square"
+    name="move_square" 
+    output="screen"
+  />
+
+</launch>

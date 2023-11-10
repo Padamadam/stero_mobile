@@ -1,10 +1,16 @@
 <package>
-<name>stero_mobile_init</name>
-<version>1.2.4</version>
-<description>uzupelnic</description>
-<maintainer email="DO-UZUPELNIENIA@mail.com"> DO-UZUPELNIENIA!!!! </maintainer>
-<license>BSD</license>
+  <name>stero_mobile_init</name>
+  <version>1.2.4</version>
+  <description>uzupelnic</description>
+  <maintainer email="DO-UZUPELNIENIA@mail.com"> DO-UZUPELNIENIA!!!! </maintainer>
+  <license>BSD</license>
+
+
   <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>move_square</build_depend>
+  <run_depend>move_square</run_depend>
+
+
   <run_depend>velma_common</run_depend>
 
 </package>
