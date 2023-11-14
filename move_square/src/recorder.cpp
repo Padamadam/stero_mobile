@@ -8,12 +8,12 @@
 void odomCallback(const nav_msgs::Odometry& msg)
  {
 
-    ROS_INFO("Predkosc liniowa x: [%f]", msg.twist.twist.linear.x);
+    // ROS_INFO("Predkosc liniowa x: [%f]", msg.twist.twist.linear.x);
 
-    ROS_INFO("Predkosc katowa z: [%f]", msg.twist.twist.angular.z);
+    // ROS_INFO("Predkosc katowa z: [%f]", msg.twist.twist.angular.z);
 
-    ROS_INFO("Pose x: [%f]", msg.pose.pose.position.x);
-    ROS_INFO("Pose y: [%f]", msg.pose.pose.position.y);
+    // ROS_INFO("Pose x: [%f]", msg.pose.pose.position.x);
+    // ROS_INFO("Pose y: [%f]", msg.pose.pose.position.y);
 }
 
 void stateCallback(const gazebo_msgs::ModelStates& msg){
