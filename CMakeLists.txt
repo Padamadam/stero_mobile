@@ -137,7 +137,8 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(move_square move_square/src/move_square.cpp)
+add_executable(move_square_node move_square/src/move_square.cpp)
+add_executable(recorder_node move_square/src/recorder.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -150,7 +151,12 @@ add_executable(move_square move_square/src/move_square.cpp)
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(move_square
+target_link_libraries(move_square_node
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries( 
+  recorder_node
   ${catkin_LIBRARIES}
 )
 

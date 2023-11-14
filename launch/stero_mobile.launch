@@ -4,9 +4,18 @@
   
   <node
     pkg="stero_mobile_init"
-    type="move_square"
+    type="move_square_node"
     name="move_square" 
     output="screen"
   />
+
+  <node
+    pkg="stero_mobile_init"
+    type="recorder_node"
+    name="recorder" 
+    output="screen"
+  />
+
+  <rosparam file="$(find stero_mobile_init)/config/my_config.yaml" />
 
 </launch>
