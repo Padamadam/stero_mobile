@@ -213,7 +213,7 @@ int main(int argc, char **argv){
       rotation_time = ros::Time::now().toSec() - state4_time;
 
       /* Check whether robot finished rotating*/
-      if(is_close(rotation_time, 4.0, 0.001)) state = 0;
+      if(is_close(rotation_time, 4.0, 0.01)) state = 0;
     }
 
     ros::spinOnce();
