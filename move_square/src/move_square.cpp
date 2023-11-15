@@ -38,7 +38,9 @@ int main(int argc, char **argv){
 
   /* Create publisher to publish robot odometry*/
   ros::Publisher publish_move = n.advertise<geometry_msgs::Twist>("/key_vel", 1000);
-  ros::Rate loop_rate(10);
+
+  /* Set loop rate the same as odometry callback */
+  ros::Rate loop_rate(50);
 
   
   float vel_x;
@@ -163,7 +165,7 @@ int main(int argc, char **argv){
       // ROS_INFO("constvelduration [%f], duration [%f]", constvel_duration, duration);
 
       /* Check whether movement with constant velocity lasted enough*/
-      if(is_close(duration, constvel_duration, 0.1)) state = 3;
+      if(is_close(duration, constvel_duration, 0.02)) state = 3;
 
     /* State 3 - deccelerating*/
     }else if(state == 3){
@@ -172,7 +174,7 @@ int main(int argc, char **argv){
       if(state3_time == 0.0) state3_time = ros::Time::now().toSec();
 
       /* Decceleration rate*/
-      vel_x -= rate*1.04; /* higher decceleration rate to ensure quicker stop due to inertia*/
+      vel_x -= rate*1.001; /* higher decceleration rate to ensure quicker stop due to inertia*/
 
       /* Set decreasing speed */
       goal.angular.x = 0.0;
@@ -213,7 +215,7 @@ int main(int argc, char **argv){
       rotation_time = ros::Time::now().toSec() - state4_time;
 
       /* Check whether robot finished rotating*/
-      if(is_close(rotation_time, 4.0, 0.01)) state = 0;
+      if(is_close(rotation_time, 4.0, 0.02)) state = 0;
     }
 
     ros::spinOnce();
