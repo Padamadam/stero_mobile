@@ -81,6 +81,8 @@ int main(int argc, char **argv){
     /* State 0 - resets measurements from previous iteration*/
     if(state == 0){
 
+      ROS_INFO("Entering State 0");
+
       state1_time = 0.0;
       state2_time = 0.0;
       state3_time = 0.0;
@@ -104,10 +106,9 @@ int main(int argc, char **argv){
       if(state1_time == 0.0) 
             state1_time = ros::Time::now().toSec();
           
-      float iteration_time;
 
       /* Hardcoded acceleration rate */
-      rate = acceleration / loop_rate.expectedCycleTime().toSec();
+      rate = acceleration * loop_rate.expectedCycleTime().toSec();
       vel_x += rate;
       ROS_INFO("Loop rate: [%f]", loop_rate.expectedCycleTime().toSec());
       goal.angular.x = 0.0;
@@ -122,7 +123,7 @@ int main(int argc, char **argv){
       publish_move.publish(goal);
 
       /* Measure lenght of one iteration */
-      if(iteration_time == 0.0) iteration_time = ros::Time::now().toSec() - state1_time;
+      // if(iteration_time == 0.0) iteration_time = ros::Time::now().toSec() - state1_time;
 
       /* Check whether final_vel was reached */
       if(is_close(vel_x, constvel, rate)) {
