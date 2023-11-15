@@ -22,6 +22,7 @@ PRZED URUCHOMIENIEM SKRYPTU
 """
 
 
+import itertools
 import bagpy
 from bagpy import bagreader
 import pandas as pd
@@ -65,21 +66,46 @@ zipped_set_linear = list(zip(set_linearx_data, set_linearx_time))
 # a problem jest taki ze tych danych z predkosci faktycznej jest po prostu wiecej
 real_linearx_analysis = []
 set_linearx_analysis = []
+total_linearx_error = 0
+linearx_error_table = []
+state = 0
+
+constvel = 1.0
+
 # przeiteruj po wszystkich rekordach
-for xreal in zipped_real_linear:
-    for xset in zipped_set_linear:
-        # jesli w przyblizeniu maja one ten sam czas odczytu
-        # to przepisz je do listy tak aby dane w niej odpowiadaly sobie
-        # wedlug chwili odczytu
-        if round(xreal[1], 1) == round(xset[1], 1):
+for xreal, xset in itertools.product(zipped_real_linear, zipped_set_linear):
+    # jesli w przyblizeniu maja one ten sam czas odczytu
+    # to przepisz je do listy tak aby dane w niej odpowiadaly sobie
+    # wedlug chwili odczytu
+    if round(xreal[1], 1) == round(xset[1], 1):
+        # te rekordy byly pobrane w tej samej chwili
+
+        # okresl czy jest to stan 1 powinno jeszcze sprawdzac predkosc katowa ze jest 0
+        # albo czy juz jestesmy w stanie sprawdzania stanu 1
+        if (xset[0] == 0 and round(xreal[0], 2) == 0) or state == 1:
+            # stan 1 - przyspieszanie
+            state = 1
+
+            linearx_error = abs(xreal[0] - xset[0])
+            linearx_error_table.append(linearx_error)
+            total_linearx_error += linearx_error
+        
             set_linearx_analysis.append(xset[0])
             real_linearx_analysis.append(xreal[0])
 
+            if (xset[0] == constvel and round(xreal[0], 2) == constvel):
+                state = 2
+                break
+
+
 
 # idk label nie dziala :ccc
+plt.figure(1)
 plt.plot(real_linearx_analysis, label='real')
 plt.plot(set_linearx_analysis, label = 'set')
 
+plt.figure(2)
+plt.plot(linearx_error_table)
 plt.show()
 
 
