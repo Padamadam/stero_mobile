@@ -38,7 +38,9 @@ int main(int argc, char **argv){
 
   /* Create publisher to publish robot odometry*/
   ros::Publisher publish_move = n.advertise<geometry_msgs::Twist>("/key_vel", 1000);
-  ros::Rate loop_rate(10);
+
+  /* Set loop rate the same as odometry callback */
+  ros::Rate loop_rate(50);
 
   
   float vel_x;
@@ -50,6 +52,8 @@ int main(int argc, char **argv){
   float state4_time;
   float acc_duration;
   float constvel_duration;
+  float iteration_time;
+  float rate;
 
   float duration; 
   float rotation_time;
@@ -64,6 +68,9 @@ int main(int argc, char **argv){
   float constvel;
   n.getParam("/constvel", constvel);
 
+  float acceleration;
+  n.getParam("/acceleration", acceleration);
+
 
   /* Setting beginning of state-machine */
   int state = 0;
@@ -76,14 +83,18 @@ int main(int argc, char **argv){
     /* State 0 - resets measurements from previous iteration*/
     if(state == 0){
 
+      ROS_INFO("Entering State 0");
+
       state1_time = 0.0;
       state2_time = 0.0;
       state3_time = 0.0;
       state4_time = 0.0;
+      iteration_time = 0.0;
       duration = 0.0;
       acc_duration = 0.0;
       constvel_duration = 0.0;
       rotation_time = 0.0;
+      rate = 0.0;
 
       vel_x = 0.0;
 
@@ -94,18 +105,30 @@ int main(int argc, char **argv){
     /* State 1 - accelerate to yaml param velocity */
     if(state == 1){
       /* Read state1_time that was reset to 0 by ROS */
-      if(state1_time == 0.0) state1_time = ros::Time::now().toSec();
+      if(state1_time == 0.0) 
+            state1_time = ros::Time::now().toSec();
+          
 
       /* Hardcoded acceleration rate */
-      vel_x += 0.025;
+      rate = acceleration * loop_rate.expectedCycleTime().toSec();
+      vel_x += rate;
+      ROS_INFO("Loop rate: [%f]", loop_rate.expectedCycleTime().toSec());
+      goal.angular.x = 0.0;
+      goal.angular.y = 0.0;
+      goal.angular.z = 0.0;
 
-      goal = setForwardSpeed(goal, vel_x);
+      goal.linear.x = vel_x;
+      goal.linear.y = 0.0;
+      goal.linear.z = 0.0;
 
       /* Publish set velocity */
       publish_move.publish(goal);
 
+      /* Measure lenght of one iteration */
+      // if(iteration_time == 0.0) iteration_time = ros::Time::now().toSec() - state1_time;
+
       /* Check whether final_vel was reached */
-      if(is_close(vel_x, constvel, 0.025)) {
+      if(is_close(vel_x, constvel, rate)) {
         /* Check how long acceleration took*/
         acc_duration = ros::Time::now().toSec() - state1_time;
         state = 2; 
@@ -116,7 +139,13 @@ int main(int argc, char **argv){
       /* Read reset state2_time */
       if(state2_time == 0.0) state2_time = ros::Time::now().toSec();
 
-      goal = setForwardSpeed(goal, constvel);
+      goal.angular.x = 0.0;
+      goal.angular.y = 0.0;
+      goal.angular.z = 0.0;
+
+      goal.linear.x = constvel;
+      goal.linear.y = 0.0;
+      goal.linear.z = 0.0;
 
       /* Calculate how long should constant velocity take place
                      based on acceleration time*/
@@ -133,10 +162,10 @@ int main(int argc, char **argv){
 
       /* Check how long does state2 last*/
       duration = ros::Time::now().toSec() - state2_time;
-      ROS_INFO("constvelduration [%f], duration [%f]", constvel_duration, duration);
+      // ROS_INFO("constvelduration [%f], duration [%f]", constvel_duration, duration);
 
       /* Check whether movement with constant velocity lasted enough*/
-      if(is_close(duration, constvel_duration, 0.1)) state = 3;
+      if(is_close(duration, constvel_duration, 0.02)) state = 3;
 
     /* State 3 - deccelerating*/
     }else if(state == 3){
@@ -145,16 +174,22 @@ int main(int argc, char **argv){
       if(state3_time == 0.0) state3_time = ros::Time::now().toSec();
 
       /* Decceleration rate*/
-      vel_x -= 0.027; /* higher decceleration rate to ensure quicker stop due to inertia*/
+      vel_x -= rate*1.001; /* higher decceleration rate to ensure quicker stop due to inertia*/
 
       /* Set decreasing speed */
-      goal = setForwardSpeed(goal, vel_x);
+      goal.angular.x = 0.0;
+      goal.angular.y = 0.0;
+      goal.angular.z = 0.0;
+
+      goal.linear.x = vel_x;
+      goal.linear.y = 0.0;
+      goal.linear.z = 0.0;
 
       publish_move.publish(goal);
 
       /* Check whether robot stopped */
       // modle sie do Boga aby on zwalnial tyle samo co przyspieszal xdd
-      if(is_close(vel_x, 0.0, 0.027))  state = 4; 
+      if(is_close(vel_x, 0.0, rate))  state = 4; 
 
       /* State 4 - rotating*/
     }else if(state == 4){
@@ -180,13 +215,13 @@ int main(int argc, char **argv){
       rotation_time = ros::Time::now().toSec() - state4_time;
 
       /* Check whether robot finished rotating*/
-      if(is_close(rotation_time, 4.0, 0.01)) state = 0;
+      if(is_close(rotation_time, 4.0, 0.02)) state = 0;
     }
 
     ros::spinOnce();
 
     loop_rate.sleep();
-    // ROS_INFO("state [%d]", state);
+    ROS_INFO("state [%d]", state);
    } 
    return 0;
  }

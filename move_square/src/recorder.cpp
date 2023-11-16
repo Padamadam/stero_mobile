@@ -5,44 +5,56 @@
 #include "nav_msgs/Odometry.h"
 #include <cmath>
 
-void odomCallback(const nav_msgs::Odometry& msg)
- {
+class Recorder {
+public:
+    Recorder() : linear_error(0.0), angular_error(0.0), vel_x(0.0) {
+    }
 
-    // ROS_INFO("Predkosc liniowa x: [%f]", msg.twist.twist.linear.x);
-
-    // ROS_INFO("Predkosc katowa z: [%f]", msg.twist.twist.angular.z);
-
-    // ROS_INFO("Pose x: [%f]", msg.pose.pose.position.x);
-    // ROS_INFO("Pose y: [%f]", msg.pose.pose.position.y);
-}
-
-void stateCallback(const gazebo_msgs::ModelStates& msg){
-
-}
-
-int main(int argc, char **argv)
-{
- 
-    ros::init(argc, argv, "recorder");
-
-
-    ros::NodeHandle n;
-
-    ros::Subscriber real_odom = n.subscribe("mobile_base_controller/odom", 1000, odomCallback);
-    ros::Subscriber real_state = n.subscribe("gazebo/model_states", 1000, stateCallback);
-    ros::Rate loop_rate(10);
-
-    // 1. odczytac pozycje poczatkowa
-    // 2. wyliczyc wspolrzedne pod koniec automatu
-    // 3. wyliczyc blad
-
-    while (ros::ok())
-    {
-    ros::spinOnce();
-
-    loop_rate.sleep();
+    ~Recorder() {
     }
 
 
-   return 0;
- }
+    void requestedValsCallback(const geometry_msgs::Twist& msg) {
+        requested_linear_x = msg.linear.x;
+        requested_angular_z = msg.angular.z;
+    }
+
+    void odomCallback(const nav_msgs::Odometry& msg) {
+        linear_error += std::abs(msg.twist.twist.linear.x - requested_linear_x);
+        angular_error += std::abs(msg.twist.twist.angular.z - requested_angular_z);
+
+        ROS_INFO("linear.x: [%f]", msg.twist.twist.linear.x);
+        ROS_INFO("angular.z: [%f]", msg.twist.twist.angular.z);
+    }
+
+    void stateCallback(const gazebo_msgs::ModelStates& msg){
+    }
+
+private:
+    float linear_error;
+    float angular_error;
+    float vel_x;
+    float requested_linear_x;
+    float requested_angular_z;
+};
+
+Recorder* recorder_ptr = nullptr;
+
+int main(int argc, char **argv) {
+    ros::init(argc, argv, "recorder");
+    ros::NodeHandle n;
+
+    Recorder recorder;
+
+    ros::Subscriber real_odom = n.subscribe("mobile_base_controller/odom", 1000, &Recorder::odomCallback, &recorder);
+    ros::Subscriber requested = n.subscribe("/key_vel", 1000, &Recorder::requestedValsCallback, &recorder);
+    ros::Subscriber real_state = n.subscribe("gazebo/model_states", 1000, &Recorder::stateCallback, &recorder);
+    ros::Rate loop_rate(10);
+
+    while (ros::ok()) {
+        ros::spinOnce();
+        loop_rate.sleep();
+    }
+
+    return 0;
+}
