@@ -31,7 +31,7 @@ import numpy as np
 
 # Odczytaj plik do ktorego spakowano pomiary rosbagiem
 # b = bagreader('/home/adam/tiago_ws/src/stero_mobile/rosbag/r_s5_v1_a05.bag')
-b = bagreader('/home/lnowaczy/tiago_ws/src/stero_mobile/rosbag/r_s5_v1_a05.bag')
+b = bagreader('/home/lnowaczy/tiago_ws/src/stero_mobile/rosbag/l_s5_v1_a1.bag')
 # Wyprintuj tabele topicow aby dowiedziec sie jakie sie zapisaly i ile maja recordow
 print(b.topic_table)
 
@@ -89,6 +89,9 @@ constvel = 1.0
 
 state = 0
 
+bok = 1
+measurement = 4
+
 i = 1
 
 # przeiteruj po wszystkich rekordach
@@ -102,9 +105,9 @@ for xreal, xset in itertools.product(zipped_real_linear, zipped_set_linear):
         # okresl czy jest to stan 1 powinno jeszcze sprawdzac predkosc katowa ze jest 0
         # albo czy juz jestesmy w stanie sprawdzania stanu 1
 
-        if state == 0:
+        if state == 0 and bok <= measurement:
             # stan rozpoznajacy poczatek cyklu
-            if (xset[0] == 0 and round(xreal[0], 2) == 0):
+            if (round(xset[0], 2) == 0 and round(xreal[0], 2) == 0):
                 state = 1
 
         if  state == 1: # or (xset[0] == 0 and round(xreal[0], 2) == 0):
@@ -117,9 +120,9 @@ for xreal, xset in itertools.product(zipped_real_linear, zipped_set_linear):
         
             set_linearx_analysis.append(xset[0])
             real_linearx_analysis.append(xreal[0])
-
+            # print(f'{round(xset[0], 2)}, {round(xreal[0], 2)}')
             # sprawdz czy juz dojechal do predkosci koncowej
-            if (xset[0] == constvel and round(xreal[0], 2) == constvel): #or state == 2:
+            if (round(xset[0], 2) == constvel and round(xreal[0], 2) == constvel): #or state == 2:
                 #jazda v_const
                 state = 2
         if state == 2:
@@ -128,26 +131,28 @@ for xreal, xset in itertools.product(zipped_real_linear, zipped_set_linear):
             const_vel_error.append(momentary_const_vel_error)
             total_const_vel_error += momentary_const_vel_error
 
-            if (xset[0] != constvel and round(xreal[0], 2) == constvel):
+            if (round(xset[0], 2) != constvel and round(xreal[0], 2) == constvel):
                 state = 3
         if state == 3:
         # stan 3 - ruch opozniony
+        
             momentary_delay_vel_error = abs(xreal[0] - xset[0])
             delay_vel_error.append(momentary_delay_vel_error)
             total_delay_vel_error += momentary_delay_vel_error
-        
             set_delay_vel_analysis.append(xset[0])
             real_delay_vel_analysis.append(xreal[0])
 
-            if (xset[0] == 0 and round(xreal[0], 2) == 0):
+            if (round(xset[0], 2) == 0 and round(xreal[0], 2) == 0):
                 state = 4
         if state == 4:
             # break wywala z petli po pierwszym boku kwadratu
             # break
             # state 0 powtarza petle 4 razy
             state = 0
+            bok += 1
 
 state=0
+bok = 1
 angularz_error_table=[]
 total_angularz_error=0
 set_angularz_analysis=[]
@@ -156,7 +161,7 @@ total_of_totals_error_angular = 0
 
 for zreal, zset in itertools.product(zipped_real_angular, zipped_set_angular):
     if round(zreal[1], 1) == round(zset[1], 1):
-        if state == 0:
+        if state == 0 and bok <= measurement:
         # stan rozpoznajacy poczatek cyklu obrotu
             if (zset[0] != 0 and round(zreal[0], 2) != 0):
                 state = 1
@@ -172,6 +177,7 @@ for zreal, zset in itertools.product(zipped_real_angular, zipped_set_angular):
                 # bledu po 4 obrotach
                 total_of_totals_error_angular += total_angularz_error
                 state = 0
+                bok += 1
                 
 
 # idk label nie dziala :ccc
@@ -180,35 +186,44 @@ for zreal, zset in itertools.product(zipped_real_angular, zipped_set_angular):
 plt.figure(1)
 plt.plot(real_linearx_analysis, label='real')
 plt.plot(set_linearx_analysis, label = 'set')
+plt.title('Trajektoria ruchu przyspieszonego')
 
 plt.figure(2)
 plt.plot(linearx_error_table)
+plt.title('Blad ruchu przyspieszonego')
 
 # Wykresy ruchu jednostajnego
 plt.figure(3)
 plt.plot(const_vel_error)
+plt.title('Blad ruchu jednostajnego')
 
 # Wykresy ruchu opoznionego
 plt.figure(4)
 plt.plot(real_delay_vel_analysis, label='real')
 plt.plot(set_delay_vel_analysis, label = 'set')
+plt.title('Trajektoria ruchu opoznionego')
 
 plt.figure(5)
 plt.plot(delay_vel_error)
+plt.title('Blad ruchu opoznionego')
 
 # Wykresy predkosci katowej
 plt.figure(6)
 plt.plot(real_angularz_analysis, label='real')
 plt.plot(set_angularz_analysis, label = 'set')
+plt.title('Trajektoria ruchu obrotowego')
 
 plt.figure(7)
 plt.plot(angularz_error_table)
+plt.title('Blad ruchu obotowego')
 plt.show()
 
 # dane potrzebne do sprawka
 
 # całkowita suma błedow (liniowych) - z jednej prostej
 # jezeli w pierwszej petli w ostatnim if dasz state = 0 zamiast brake bedzie to blad po calym kwadracie
+
+
 total_of_totals_error = total_linearx_error + total_const_vel_error + total_delay_vel_error
 print(f'suma bledow liniowych to {total_of_totals_error}')
 
@@ -216,3 +231,11 @@ print(f'suma bledow liniowych to {total_of_totals_error}')
 total_of_totals_error_angular
 print(f'suma bledow katowych to {total_of_totals_error_angular}')
 
+print(f"""
+opniziony = {total_delay_vel_error}
+przyspieszony = {total_linearx_error}
+jednostajny = {total_const_vel_error}
+Numer boku: {measurement}
+blad liniowy: {total_of_totals_error}
+blad katowy: {total_of_totals_error_angular}
+""")
