@@ -1,0 +1,13 @@
+<launch>
+<arg name="map_file" default="$(find stero_mobile_init)/maps/korytarz/map.yaml"/>
+
+<include file="$(find stero_mobile_init)/launch/tiago_simple.launch">
+    <arg name="world" value="korytarz"/>
+
+</include>
+
+<node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)"/>
+<node name="korytarztrans" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 map odom 100"/>
+
+
+</launch>
