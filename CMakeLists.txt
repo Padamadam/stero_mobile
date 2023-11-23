@@ -14,7 +14,18 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   nav_msgs
   rosbag
+  tf2
+  tf2_ros
+  costmap_2d
+  dwa_local_planner
+  global_planner
+  rotate_recovery
+  clear_costmap_recovery
 )
+
+
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIRS})
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -140,6 +151,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(move_square_node move_square/src/move_square.cpp)
 add_executable(recorder_node move_square/src/recorder.cpp)
+add_executable(navigation_node navigation/src/navigation_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -159,6 +171,11 @@ target_link_libraries(move_square_node
 target_link_libraries( 
   recorder_node
   ${rosbag_LIBRARIES}
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries( 
+  navigation_node
   ${catkin_LIBRARIES}
 )
 

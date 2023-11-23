@@ -9,6 +9,9 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>move_square</build_depend>
   <run_depend>move_square</run_depend>
+
+  <build_depend>my_navigation</build_depend>
+  <run_depend>my_navigation</run_depend>
   
 
 
