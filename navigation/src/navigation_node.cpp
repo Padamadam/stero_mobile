@@ -14,17 +14,22 @@ std::vector<geometry_msgs::PoseStamped> plan;
 // Global variable to store the current robot pose
 geometry_msgs::PoseStamped current_robot_pose;
 geometry_msgs::PoseStamped start_pose, goal_pose;
+bool goal_set = false;
 
 void odomCallback(nav_msgs::Odometry odom_msg) {
     odom_msg.header.frame_id = "map";
     current_robot_pose.header = odom_msg.header;
-    current_robot_pose.pose = odom_msg.pose.pose;
+    current_robot_pose.pose.position = odom_msg.pose.pose.position;
+    current_robot_pose.pose.orientation = odom_msg.pose.pose.orientation;
 }
 
 void navGoalCallback(geometry_msgs::PoseStamped msg){
     msg.header.frame_id = "map";
+    current_robot_pose.header.frame_id = "map";
     start_pose = current_robot_pose;
+    start_pose.header.frame_id = "map";
     goal_pose = msg;
+    goal_set = true;
 }
 
 int main(int argc, char **argv){
@@ -52,18 +57,32 @@ int main(int argc, char **argv){
   
     ros::Subscriber set_goal = n.subscribe<geometry_msgs::PoseStamped>("/move_base_simple/goal", 1000, navGoalCallback);
 
-    ros::Subscriber odom_sub = n.subscribe<nav_msgs::Odometry>("/odom", 1000, odomCallback);
+    ros::Subscriber odom_sub = n.subscribe<nav_msgs::Odometry>("mobile_base_controller/odom", 1000, odomCallback);
 
-    ros::Publisher vel_pub = n.advertise<geometry_msgs::Twist>("/cmd_vel", 1000);
+    /* Tiago nasluchuje na navel*/
+    ros::Publisher vel_pub = n.advertise<geometry_msgs::Twist>("/nav_vel", 1000);
 
-    globalPlanner.makePlan(start_pose, goal_pose, plan);
-    dp.setPlan(plan);
-    geometry_msgs::Twist cmd_vel;
-    dp.dwaComputeVelocityCommands(current_robot_pose, cmd_vel);
     ros::Rate loop_rate(10);
+
+    start_pose.header.frame_id = "map";
+
+    geometry_msgs::Twist cmd_vel;
 
     while (ros::ok())
     {
+    // sprawdzac ze goal set byl ustawiony
+        if(goal_set){
+            ROS_INFO("start_pose: %s" , start_pose.header.frame_id.c_str());
+            // nowy plan aktualizowac co jakis czas
+            // szczegolnie kidey compute velocity commands zwroci false
+            // wtedy przeplanowac na nowo
+            // pamietac o pluginach
+            globalPlanner.makePlan(start_pose, goal_pose, plan);
+            dp.setPlan(plan);
+            dp.computeVelocityCommands(cmd_vel);
+
+            vel_pub.publish(cmd_vel);
+        }
         ros::spinOnce();
 
         loop_rate.sleep();

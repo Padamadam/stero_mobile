@@ -10,13 +10,16 @@
     <node name="labirynttrans" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 map odom 100"/>
 
 
-    <node pkg="stero_mobile_init" type="navigation_node" name="navigation_node" output="screen"></node>
-    <param name="sensor_param" value="param_value" />
-    <rosparam file="$(find stero_mobile_init)/navigation/map_params/costmap_common_params.yaml" command="load" ns="global_costmap" /> 
-    <rosparam file="$(find stero_mobile_init)/navigation/map_params/costmap_common_params.yaml" command="load" ns="local_costmap" />
-    <rosparam file="$(find stero_mobile_init)/navigation/map_params/local_costmap_params.yaml" command="load" />
-    <rosparam file="$(find stero_mobile_init)/navigation/map_params/global_costmap_params.yaml" command="load" /> 
-    <rosparam file="$(find stero_mobile_init)/navigation/map_params/base_local_planner_params.yaml" command="load" />
+    <node pkg="stero_mobile_init" type="navigation_node" name="navigation_node" output="screen">
+        <rosparam file="$(find stero_mobile_init)/navigation/map_params/costmap_common_params.yaml" command="load" ns="global_costmap" /> 
+        <rosparam file="$(find stero_mobile_init)/navigation/map_params/costmap_common_params.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(find stero_mobile_init)/navigation/map_params/local_costmap_params.yaml" command="load" />
+        <rosparam file="$(find stero_mobile_init)/navigation/map_params/global_costmap_params.yaml" command="load" /> 
+        <rosparam file="$(find stero_mobile_init)/navigation/map_params/base_local_planner_params.yaml" command="load" />
+            
+        
+        </node>
 
+    <!-- <param name="sensor_param" value="param_value" /> -->
 
 </launch> 
