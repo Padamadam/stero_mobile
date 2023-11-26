@@ -7,11 +7,8 @@
 #include <global_planner/planner_core.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
-#include <rotate_recovery/rotate_recovery.h>
-#include <clear_costmap_recovery/clear_costmap_recovery.h>
 
 std::vector<geometry_msgs::PoseStamped> plan;
-// Global variable to store the current robot pose
 geometry_msgs::PoseStamped current_robot_pose;
 geometry_msgs::PoseStamped start_pose, goal_pose;
 bool goal_set = false;
@@ -39,7 +36,6 @@ int main(int argc, char **argv){
     tf2_ros::Buffer buffer(ros::Duration(10));
     ros::NodeHandle n;
     tf2_ros::TransformListener tf(buffer);
-    // buffer.setUsingDedicatedThread(true);
 
     costmap_2d::Costmap2DROS globalCostmap("global_costmap", buffer);
     costmap_2d::Costmap2DROS localCostmap("local_costmap", buffer);
@@ -48,12 +44,6 @@ int main(int argc, char **argv){
 
     dwa_local_planner::DWAPlannerROS dp;
     dp.initialize("my_dwa_planner", &buffer, &localCostmap);
-
-    // rotate_recovery::RotateRecovery rotateRecovery;
-    // rotateRecovery.initialize("my_rotate_recovery", &buffer, &globalCostmap, &localCostmap);
-
-    // clear_costmap_recovery::ClearCostmapRecovery clearCostmapRecovery;
-    // clearCostmapRecovery.initialize("my_clear_costmap_recovery", &buffer, &globalCostmap, &localCostmap);
   
     ros::Subscriber set_goal = n.subscribe<geometry_msgs::PoseStamped>("/move_base_simple/goal", 1000, navGoalCallback);
 
@@ -72,16 +62,11 @@ int main(int argc, char **argv){
     {
     // sprawdzac ze goal set byl ustawiony
         if(goal_set){
-            ROS_INFO("start_pose: %s" , start_pose.header.frame_id.c_str());
-            // nowy plan aktualizowac co jakis czas
-            // szczegolnie kidey compute velocity commands zwroci false
-            // wtedy przeplanowac na nowo
-            // pamietac o pluginach
             globalPlanner.makePlan(start_pose, goal_pose, plan);
             dp.setPlan(plan);
-            dp.computeVelocityCommands(cmd_vel);
-
-            vel_pub.publish(cmd_vel);
+            if(dp.computeVelocityCommands(cmd_vel)){
+                vel_pub.publish(cmd_vel);
+            }
         }
         ros::spinOnce();
 

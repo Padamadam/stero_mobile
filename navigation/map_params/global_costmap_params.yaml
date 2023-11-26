@@ -1,16 +1,23 @@
 global_costmap:
-  # global_frame: /map
+  # baza robota jest base_link
   robot_base_frame: base_link
-  update_frequency: 5.0
+  # aktualizacja czestotliwosci obliczania trasy globalnej: 0.5Hz
+  update_frequency: 0.5
   static_map: true
   plugins: 
     - {name: static_map,       type: "costmap_2d::StaticLayer"}
     - {name: obstacles,        type: "costmap_2d::VoxelLayer"}
     - {name: inflation,        type: "costmap_2d::InflationLayer"}
 
+  # przeszkody wykrywane przez LaserScan i publikowane na /base_scan
   obstacles:
     observation_sources: base_scan
     base_scan: {data_type: LaserScan, sensor_frame: /base_laser_link, clearing: true, marking: true, topic: /base_scan}
   
+  # mapa publikowana na /map
   static_map:
     map_topic: map
+
+  # powiekszenie przeszkod o 0.3 metra
+  inflation:
+    inflation_radius: 0.3
