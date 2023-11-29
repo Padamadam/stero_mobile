@@ -47,7 +47,7 @@ int main(int argc, char **argv){
   
     ros::Subscriber set_goal = n.subscribe<geometry_msgs::PoseStamped>("/move_base_simple/goal", 1000, navGoalCallback);
 
-    ros::Subscriber odom_sub = n.subscribe<nav_msgs::Odometry>("mobile_base_controller/odom", 1000, odomCallback);
+    ros::Subscriber odom_sub = n.subscribe<nav_msgs::Odometry>("/mobile_base_controller/odom", 1000, odomCallback);
 
     /* Tiago nasluchuje na navel*/
     ros::Publisher vel_pub = n.advertise<geometry_msgs::Twist>("/nav_vel", 1000);
@@ -65,11 +65,13 @@ int main(int argc, char **argv){
             globalPlanner.makePlan(start_pose, goal_pose, plan);
             dp.setPlan(plan);
             if(dp.computeVelocityCommands(cmd_vel)){
+                // Add this after dp.computeVelocityCommands(cmd_vel);
+                ROS_INFO("Computed velocity commands: linear=(%f, %f), angular=%f", cmd_vel.linear.x, cmd_vel.linear.y, cmd_vel.angular.z);
+
                 vel_pub.publish(cmd_vel);
             }
         }
         ros::spinOnce();
-
         loop_rate.sleep();
     }
 

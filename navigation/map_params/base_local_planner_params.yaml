@@ -1,13 +1,36 @@
-TrajectoryPlannerROS:
-  global_frame_id: /map
-  max_vel_x: 1.0
-  min_vel_x: 0.1
-  max_vel_theta: 3.0
-  min_in_place_vel_theta: 3.0
+global_frame_id: map
 
-  acc_lim_theta: 3.2
-  acc_lim_x: 2.5
-  acc_lim_y: 0.0
+holonomic_robot: false
+
+max_vel_x: 3.0
+min_vel_x : 0.1
+max_vel_theta: 3.0
+min_vel_theta: -3.0
+min_in_place_vel_theta: 0.4
+
+escape_vel: -0.1
+
+y_vels: [0.0, 0.0, 0.0, 0.0] 
+
+
+acc_lim_theta: 3.2
+acc_lim_x: 2.5
+acc_lim_y: 0.0
+
+oscillation_reset_dist: 0.1
+
+# vx_samples: 10
+# vtheta_samples: 20
 
 # precyzja dotarcia do celu
-  xy_goal_tolerance: 0.5
+xy_goal_tolerance: 0.01
+
+# heading_scoring: true
+
+meter_scoring: true
+pdist_scale: 4.0
+gdist_scale: 3.0
+occdist_scale: 0.1
+
+# heading_lookahead: 0.5 
+
