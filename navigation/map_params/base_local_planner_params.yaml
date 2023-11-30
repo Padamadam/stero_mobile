@@ -2,10 +2,10 @@ global_frame_id: map
 
 holonomic_robot: false
 
-max_vel_x: 3.0
-min_vel_x : 0.1
-max_vel_theta: 3.0
-min_vel_theta: -3.0
+max_vel_x: 5.0
+min_vel_x : -0.1
+max_vel_theta: 6.0
+min_vel_theta: 0.0
 min_in_place_vel_theta: 0.4
 
 escape_vel: -0.1

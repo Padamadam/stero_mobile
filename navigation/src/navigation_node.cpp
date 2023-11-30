@@ -62,7 +62,7 @@ int main(int argc, char **argv){
     {
     // sprawdzac ze goal set byl ustawiony
         if(goal_set){
-            globalPlanner.makePlan(start_pose, goal_pose, plan);
+            globalPlanner.makePlan(current_robot_pose, goal_pose, plan);
             dp.setPlan(plan);
             if(dp.computeVelocityCommands(cmd_vel)){
                 // Add this after dp.computeVelocityCommands(cmd_vel);

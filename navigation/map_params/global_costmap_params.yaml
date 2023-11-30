@@ -22,4 +22,4 @@ global_costmap:
 
   # powiekszenie przeszkod o 0.3 metra
   inflation:
-    inflation_radius: 0.5
+    inflation_radius: 0.4
